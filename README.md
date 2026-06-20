@@ -1,59 +1,220 @@
-# JDK Smart Factory Platform — Enterprise Edition
+# JDK Smart Factory Platform - Enterprise Edition
 
-## Run
+A modern, enterprise-class Smart Factory Management System with MRP/ATP capabilities.
+
+## Features
+
+- **Secure Authentication**: JWT-based authentication with role-based access control
+- **Modern UI**: Responsive React frontend with Tailwind CSS
+- **Enterprise Database**: MySQL backend with proper schema design
+- **Role-Based Access**: 5 different user roles with specific permissions
+- **MRP Engine**: Material Requirements Planning and Available-to-Promise calculations
+- **Complete Modules**: Orders, Inventory, Products, Customers, Suppliers, Reports
+
+## Quick Start with XAMPP
+
+### Prerequisites
+
+1. **XAMPP installed** with MySQL running
+2. **Python 3.8+** installed
+3. **Node.js 18+** installed
+
+### Installation
+
+1. **Start XAMPP MySQL** from the XAMPP Control Panel
+
+2. **Run the one-click installer**:
+   ```bash
+   ./install.sh
+   ```
+
+3. **Start the application**:
+   ```bash
+   ./start.sh
+   ```
+
+4. **Access the application**:
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8000
+   - API Documentation: http://localhost:8000/docs
+
+### Test User Credentials
+
+| Username   | Password      | Role                |
+|------------|---------------|---------------------|
+| admin      | admin123      | Super Admin         |
+| planner    | planner123    | Production Planner  |
+| warehouse  | warehouse123  | Warehouse User      |
+| purchase   | purchase123   | Purchasing User     |
+| viewer     | view123       | Management Viewer   |
+
+## Manual Setup (Alternative)
+
+If you prefer manual setup:
+
+### Backend Setup
+
 ```bash
+# Create virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
-streamlit run app.py
+
+# Configure environment variables
+cp backend/.env.example backend/.env
+# Edit backend/.env with your database settings
+
+# Initialize database
+cd backend
+python3 -c "from database import Base, engine; Base.metadata.create_all(bind=engine)"
+python3 seed_data.py
+cd ..
+
+# Start backend
+uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-## Login credentials
-Credentials are stored in `config/auth.json` as SHA-256 hashed passwords.
-**No plaintext secrets in source code.**
+### Frontend Setup
 
-| Username   | Password      | Role               |
-|------------|---------------|--------------------|
-| admin      | admin123      | Super Admin        |
-| planner    | planner123    | Production Planner |
-| warehouse  | warehouse123  | Warehouse User     |
-| purchase   | purchase123   | Purchasing User    |
-| viewer     | view123       | Management Viewer  |
+```bash
+cd frontend
 
-To add/change users, edit `config/auth.json`. Generate new hashes with:
-```python
-import hashlib
-hashlib.sha256("yourpassword".encode()).hexdigest()
+# Install dependencies
+npm install
+
+# Configure environment
+echo "VITE_API_BASE_URL=http://localhost:8000/api" > .env
+
+# Build for production or run development server
+npm run build        # Production build
+npm run dev          # Development server
 ```
 
-## Fixes in this release
-**Auth**
-- Credentials moved out of source code into `config/auth.json`
-- Passwords stored as SHA-256 hashes (never plaintext)
-- Login now uses username + password (not role selector)
-- `_authenticate()` validates hash; wrong credentials blocked cleanly
+## Architecture
 
-**Engine (`mrp_engine.py`)**
-- `MRPConfig.from_dict()` ignores unknown config keys (no crash on extra fields)
-- `_to_kg()`: bag_size=0 now correctly falls back to product default (was silently wrong)
-- `inventory_health()` sorts CRITICAL → LOW → OK using a numeric key, not string sort
-- Empty reorder_alerts returns typed empty DataFrame (no KeyError on `.empty`)
-- Excel export: conditional row colouring now applied (ok/warn/err formats were defined but never used)
-- Excel export: `max_data` NaN guard prevents crash on single-row sheets
-- `_production_material_cost` cost rows use `None` for missing price (not string "—")
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   React SPA     │────▶│   FastAPI       │────▶│   MySQL         │
+│   (Frontend)    │     │   (Backend)     │     │   (Database)    │
+│   Port: 3000    │     │   Port: 8000    │     │   Port: 3306    │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+```
 
-**App (`app.py`)**
-- `_safe_cols()` helper: DataFrame column subset never crashes on missing columns
-- Formula form: pct pre-fill reset to 0.0 (not stale value from prior material selection)
-- `save_master()` now uses consistent `_alert()` helper (was mixing `st.success()`)
-- `st.session_state.reports` cleared before each new MRP run (no stale data displayed)
-- Restore: added "Confirm Restore" button guard before overwriting master data
-- Inventory page switched from `st.radio` to `st.tabs` (cleaner UX)
-- `_safe_cols()` applied to all DataFrame column subsets (no KeyError on new/missing fields)
-- All `pd.DataFrame(filtered)[cols]` calls guarded against missing columns
+## Project Structure
 
-**Design / responsiveness**
-- KPI cards use `height:100%` + consistent padding
-- `@media (max-width:768px)` breakpoint stacks columns on mobile
-- Nav pills use proper `data-checked` selector (active state reliable)
-- Login rendered as a centred card without broken column layout
-- Alert helper unified as `_alert()` throughout (no more mixed `st.error`/`st.success`)
-- Sidebar `min-width: 220px` prevents collapse on narrow desktops
+```
+/workspace
+├── backend/                 # FastAPI backend
+│   ├── main.py             # Application entry point
+│   ├── config.py           # Configuration settings
+│   ├── database.py         # Database connection
+│   ├── models.py           # SQLAlchemy models
+│   ├── schemas.py          # Pydantic schemas
+│   ├── security.py         # Authentication & authorization
+│   ├── seed_data.py        # Test data generator
+│   └── routes/             # API endpoints
+│       ├── auth.py         # Authentication routes
+│       ├── customers.py    # Customer management
+│       ├── products.py     # Product management
+│       ├── orders.py       # Order management
+│       ├── inventory.py    # Inventory management
+│       └── mrp.py          # MRP calculations
+├── frontend/               # React frontend
+│   ├── src/
+│   │   ├── components/     # Reusable components
+│   │   ├── pages/          # Page components
+│   │   ├── services/       # API services
+│   │   ├── hooks/          # Custom hooks
+│   │   └── types/          # TypeScript types
+│   └── public/             # Static assets
+├── install.sh              # One-click installer
+├── start.sh                # Start all services
+├── stop.sh                 # Stop all services
+├── start-backend.sh        # Start backend only
+├── start-frontend.sh       # Start frontend only
+└── requirements.txt        # Python dependencies
+```
+
+## Security Features
+
+- **Password Hashing**: Bcrypt for secure password storage
+- **JWT Tokens**: Access and refresh tokens with expiration
+- **Role-Based Access Control**: 5 predefined roles with specific permissions
+- **CORS Protection**: Configurable cross-origin resource sharing
+- **Input Validation**: Pydantic schemas for request validation
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/login` - User login
+- `POST /api/auth/refresh` - Refresh access token
+- `POST /api/auth/logout` - User logout
+
+### Customers
+- `GET /api/customers` - List all customers
+- `POST /api/customers` - Create customer
+- `GET /api/customers/{id}` - Get customer details
+- `PUT /api/customers/{id}` - Update customer
+- `DELETE /api/customers/{id}` - Delete customer
+
+### Products
+- `GET /api/products` - List all products
+- `POST /api/products` - Create product
+- `GET /api/products/{id}` - Get product details
+- `PUT /api/products/{id}` - Update product
+- `DELETE /api/products/{id}` - Delete product
+
+### Orders
+- `GET /api/orders` - List all orders
+- `POST /api/orders` - Create order
+- `GET /api/orders/{id}` - Get order details
+- `PUT /api/orders/{id}` - Update order
+- `POST /api/orders/{id}/approve` - Approve order
+- `POST /api/orders/{id}/cancel` - Cancel order
+
+### Inventory
+- `GET /api/inventory/raw-materials` - Raw materials inventory
+- `GET /api/inventory/finished-goods` - Finished goods inventory
+- `POST /api/inventory/raw-materials/adjust` - Adjust stock
+- `POST /api/inventory/finished-goods/adjust` - Adjust stock
+
+### MRP
+- `GET /api/mrp/calculate` - Run MRP calculation
+- `GET /api/mrp/atp` - Available-to-Promise check
+- `GET /api/mrp/reports` - Generate MRP reports
+
+## User Roles
+
+| Role | Permissions |
+|------|-------------|
+| **Super Admin** | Full system access, user management |
+| **Production Planner** | Create/manage orders, run MRP, plan production |
+| **Warehouse User** | Manage inventory, adjust stock levels |
+| **Purchasing User** | Manage suppliers, create purchase orders |
+| **Management Viewer** | Read-only access to reports and dashboards |
+
+## Troubleshooting
+
+### MySQL Connection Error
+- Ensure XAMPP MySQL is running
+- Check if port 3306 is available
+- Verify database credentials in `backend/.env`
+
+### Port Already in Use
+- Backend: Change port in `start-backend.sh`
+- Frontend: Change port in `start-frontend.sh`
+
+### Permission Denied
+```bash
+chmod +x install.sh start.sh stop.sh
+```
+
+## License
+
+Proprietary - JDK Smart Factory Platform
+
+## Support
+
+For support, please contact your system administrator.
