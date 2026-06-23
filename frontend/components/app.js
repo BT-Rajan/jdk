@@ -4,13 +4,22 @@ const App = window.App = {
   currentPage: null,
 
   async init() {
-    // Try to restore session
-    const res = await api.me();
-    if (res?.ok) {
-      App.boot(res.data);
-    } else {
-      document.getElementById('auth-screen').classList.remove('hidden');
+    // Try to restore existing session cookie — show auth screen on any failure
+    try {
+      const res = await api.me();
+      if (res?.ok && res.data) {
+        App.boot(res.data);
+      } else {
+        App.showAuth();
+      }
+    } catch (e) {
+      App.showAuth();
     }
+  },
+
+  showAuth() {
+    document.getElementById('auth-screen').classList.remove('hidden');
+    document.getElementById('app-shell').classList.add('hidden');
   },
 
   boot(user) {

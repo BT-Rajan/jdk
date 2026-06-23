@@ -1,5 +1,6 @@
 /* ── JDK API Client ──────────────────────────────────────────────────────── */
-const API_BASE = window.JDK_API_BASE || 'http://localhost:5000';
+// When served by Flask (serve.py), use same origin. Override via window.JDK_API_BASE for dev.
+const API_BASE = window.JDK_API_BASE || '';
 
 const api = {
   async _fetch(method, path, body, isFile) {
@@ -11,12 +12,22 @@ const api = {
     if (body && !isFile) opts.body = JSON.stringify(body);
     if (body && isFile) opts.body = body;
 
-    const res = await fetch(`${API_BASE}${path}`, opts);
-    if (res.status === 401) {
-      sessionStorage.clear();
-      window.location.reload();
-      return;
+    let res;
+    try {
+      res = await fetch(`${API_BASE}${path}`, opts);
+    } catch (e) {
+      return { ok: false, error: 'Cannot reach server' };
     }
+
+    // On 401: only reload if the app is already booted (avoids init loop)
+    if (res.status === 401) {
+      if (window.App && window.App.user) {
+        sessionStorage.clear();
+        window.location.reload();
+      }
+      return { ok: false, error: 'Not authenticated' };
+    }
+
     const data = await res.json().catch(() => ({ ok: false, error: 'Network error' }));
     return data;
   },

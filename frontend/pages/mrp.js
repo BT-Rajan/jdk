@@ -127,7 +127,7 @@ async function exportMRPExcel() {
   btn.disabled = true;
   btn.textContent = '⏳ Exporting…';
   // POST to get export, then trigger download
-  const res = await fetch(`${API_BASE}/api/mrp/export`, { method: 'POST', credentials: 'include' });
+  const res = await fetch(`${window.JDK_API_BASE || ''}/api/mrp/export`, { method: 'POST', credentials: 'include' });
   if (res.ok) {
     const blob = await res.blob();
     const url  = URL.createObjectURL(blob);

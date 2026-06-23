@@ -10,16 +10,21 @@ from app import app
 
 FRONTEND = os.path.join(os.path.dirname(__file__), 'frontend')
 
-@app.route('/')
+@app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
-def static_frontend(path='index.html'):
-    # API routes are already registered, this catches everything else
+def static_frontend(path):
+    # Never intercept API routes — they are already registered on the app
     if path.startswith('api/'):
-        return app.send_static_file(path)
-    try:
+        from flask import abort
+        abort(404)
+
+    # Serve real files that exist (JS, CSS, assets…)
+    full = os.path.join(FRONTEND, path)
+    if path and os.path.isfile(full):
         return send_from_directory(FRONTEND, path)
-    except Exception:
-        return send_from_directory(FRONTEND, 'index.html')
+
+    # Everything else → SPA shell
+    return send_from_directory(FRONTEND, 'index.html')
 
 if __name__ == '__main__':
     print("=" * 60)
@@ -27,4 +32,4 @@ if __name__ == '__main__':
     print("  Open: http://localhost:5000")
     print("  Default login: admin / admin123")
     print("=" * 60)
-    app.run(debug=True, port=5000, host='0.0.0.0')
+    app.run(debug=False, port=5000, host='0.0.0.0')
