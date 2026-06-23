@@ -1,5 +1,5 @@
 /* ── JDK API Client ──────────────────────────────────────────────────────── */
-// When served by Flask (serve.py), use same origin. Override via window.JDK_API_BASE for dev.
+// Empty string = same origin (works when served by Flask on any host/port)
 const API_BASE = window.JDK_API_BASE || '';
 
 const api = {
@@ -10,49 +10,41 @@ const api = {
       headers: isFile ? {} : { 'Content-Type': 'application/json' },
     };
     if (body && !isFile) opts.body = JSON.stringify(body);
-    if (body && isFile) opts.body = body;
+    if (body && isFile)  opts.body = body;
 
     let res;
     try {
-      res = await fetch(`${API_BASE}${path}`, opts);
+      res = await fetch(API_BASE + path, opts);
     } catch (e) {
-      return { ok: false, error: 'Cannot reach server' };
+      return { ok: false, error: 'Cannot reach server. Is it running?' };
     }
 
-    // On 401: only reload if the app is already booted (avoids init loop)
+    // 401 = not logged in. NEVER call location.reload() — just return the error.
+    // app.js init() will show the auth screen; no infinite loop possible.
     if (res.status === 401) {
-      if (window.App && window.App.user) {
-        sessionStorage.clear();
-        window.location.reload();
-      }
       return { ok: false, error: 'Not authenticated' };
     }
 
-    const data = await res.json().catch(() => ({ ok: false, error: 'Network error' }));
-    return data;
+    try {
+      return await res.json();
+    } catch (e) {
+      return { ok: false, error: 'Server returned non-JSON response (status ' + res.status + ')' };
+    }
   },
 
-  get:    (path)        => api._fetch('GET',    path),
-  post:   (path, body)  => api._fetch('POST',   path, body),
-  patch:  (path, body)  => api._fetch('PATCH',  path, body),
-  delete: (path)        => api._fetch('DELETE', path),
-  upload: (path, form)  => api._fetch('POST',   path, form, true),
-
-  // Convenience download
-  download(path, filename) {
-    const a = document.createElement('a');
-    a.href = `${API_BASE}${path}`;
-    a.download = filename;
-    a.click();
-  },
+  get:    (path)       => api._fetch('GET',    path),
+  post:   (path, body) => api._fetch('POST',   path, body),
+  patch:  (path, body) => api._fetch('PATCH',  path, body),
+  delete: (path)       => api._fetch('DELETE', path),
+  upload: (path, form) => api._fetch('POST',   path, form, true),
 
   // Auth
-  login:         (u, p) => api.post('/api/auth/login',    { username: u, password: p }),
-  signup:        (body)  => api.post('/api/auth/signup',   body),
-  forgotPw:      (ident) => api.post('/api/auth/forgot-password', ident),
-  resetPw:       (body)  => api.post('/api/auth/reset-password', body),
-  logout:        ()      => api.post('/api/auth/logout'),
-  me:            ()      => api.get('/api/auth/me'),
+  login:    (u, p) => api.post('/api/auth/login',           { username: u, password: p }),
+  signup:   (body) => api.post('/api/auth/signup',          body),
+  forgotPw: (body) => api.post('/api/auth/forgot-password', body),
+  resetPw:  (body) => api.post('/api/auth/reset-password',  body),
+  logout:   ()     => api.post('/api/auth/logout'),
+  me:       ()     => api.get('/api/auth/me'),
 
   // Dashboard
   dashboard: () => api.get('/api/dashboard'),
@@ -65,29 +57,29 @@ const api = {
   saveSettings: (body) => api.post('/api/settings', body),
 
   // Customers
-  getCustomers:   ()    => api.get('/api/customers'),
-  addCustomer:    (b)   => api.post('/api/customers', b),
-  deleteCustomer: (n)   => api.delete(`/api/customers/${encodeURIComponent(n)}`),
+  getCustomers:   ()  => api.get('/api/customers'),
+  addCustomer:    (b) => api.post('/api/customers', b),
+  deleteCustomer: (n) => api.delete('/api/customers/' + encodeURIComponent(n)),
 
   // Products
-  getProducts:   ()   => api.get('/api/products'),
-  upsertProduct: (b)  => api.post('/api/products', b),
-  deleteProduct: (n)  => api.delete(`/api/products/${encodeURIComponent(n)}`),
+  getProducts:   ()  => api.get('/api/products'),
+  upsertProduct: (b) => api.post('/api/products', b),
+  deleteProduct: (n) => api.delete('/api/products/' + encodeURIComponent(n)),
 
   // Formulas
-  getFormula:         (p)    => api.get(`/api/formulas/${encodeURIComponent(p)}`),
-  upsertFormulaLine:  (p, b) => api.post(`/api/formulas/${encodeURIComponent(p)}`, b),
-  deleteFormulaLine:  (p, m) => api.delete(`/api/formulas/${encodeURIComponent(p)}/${encodeURIComponent(m)}`),
+  getFormula:        (p)    => api.get('/api/formulas/'    + encodeURIComponent(p)),
+  upsertFormulaLine: (p, b) => api.post('/api/formulas/'   + encodeURIComponent(p), b),
+  deleteFormulaLine: (p, m) => api.delete('/api/formulas/' + encodeURIComponent(p) + '/' + encodeURIComponent(m)),
 
   // Raw Materials
-  getRawMaterials:   ()  => api.get('/api/raw-materials'),
-  upsertMaterial:    (b) => api.post('/api/raw-materials', b),
-  deleteMaterial:    (n) => api.delete(`/api/raw-materials/${encodeURIComponent(n)}`),
+  getRawMaterials: ()  => api.get('/api/raw-materials'),
+  upsertMaterial:  (b) => api.post('/api/raw-materials', b),
+  deleteMaterial:  (n) => api.delete('/api/raw-materials/' + encodeURIComponent(n)),
 
   // Suppliers
-  getSuppliers:    ()  => api.get('/api/suppliers'),
-  addSupplier:     (b) => api.post('/api/suppliers', b),
-  deleteSupplier:  (mat, sup) => api.delete(`/api/suppliers/${encodeURIComponent(mat)}/${encodeURIComponent(sup)}`),
+  getSuppliers:   ()         => api.get('/api/suppliers'),
+  addSupplier:    (b)        => api.post('/api/suppliers', b),
+  deleteSupplier: (mat, sup) => api.delete('/api/suppliers/' + encodeURIComponent(mat) + '/' + encodeURIComponent(sup)),
 
   // Inventory
   getFG:           ()  => api.get('/api/inventory/finished-goods'),
@@ -98,18 +90,14 @@ const api = {
   checkFeasibility: (b) => api.post('/api/feasibility', b),
 
   // Orders
-  getOrders:    (q)  => api.get('/api/orders' + (q ? '?' + new URLSearchParams(q).toString() : '')),
-  createOrder:  (b)  => api.post('/api/orders', b),
-  updateOrder:  (no, b) => api.patch(`/api/orders/${encodeURIComponent(no)}`, b),
-  deleteOrder:  (no) => api.delete(`/api/orders/${encodeURIComponent(no)}`),
+  getOrders:   (q)      => api.get('/api/orders' + (q ? '?' + new URLSearchParams(q) : '')),
+  createOrder: (b)      => api.post('/api/orders', b),
+  updateOrder: (no, b)  => api.patch('/api/orders/' + encodeURIComponent(no), b),
+  deleteOrder: (no)     => api.delete('/api/orders/' + encodeURIComponent(no)),
 
   // MRP
-  runMRP:    () => api.post('/api/mrp/run'),
-  exportMRP: () => `${API_BASE}/api/mrp/export`,
+  runMRP: () => api.post('/api/mrp/run'),
 
   // Backup
-  backupMaster:    () => api.download('/api/backup/master',    'master_data_backup.json'),
-  backupOrders:    () => api.download('/api/backup/orders',    'customer_orders_backup.json'),
-  backupCustomers: () => api.download('/api/backup/customers', 'customers_backup.json'),
-  restoreMaster:   (form) => api.upload('/api/restore/master', form),
+  restoreMaster: (form) => api.upload('/api/restore/master', form),
 };

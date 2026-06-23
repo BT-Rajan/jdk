@@ -3,81 +3,91 @@ const App = window.App = {
   user: null,
   currentPage: null,
 
-  async init() {
-    // Try to restore existing session cookie — show auth screen on any failure
-    try {
-      const res = await api.me();
-      if (res?.ok && res.data) {
-        App.boot(res.data);
-      } else {
-        App.showAuth();
-      }
-    } catch (e) {
-      App.showAuth();
-    }
+  // ── Screens ──────────────────────────────────────────────────────────────
+  _splash()  { 
+    document.getElementById('splash-screen').classList.remove('hidden');
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('app-shell').classList.add('hidden');
   },
-
-  showAuth() {
+  _showAuth() {
+    document.getElementById('splash-screen').classList.add('hidden');
     document.getElementById('auth-screen').classList.remove('hidden');
     document.getElementById('app-shell').classList.add('hidden');
   },
-
-  boot(user) {
-    App.user = user;
+  _showApp()  {
+    document.getElementById('splash-screen').classList.add('hidden');
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('app-shell').classList.remove('hidden');
+  },
 
-    // Set user info in sidebar
-    document.getElementById('user-display').textContent = user.display_name || user.username;
+  // ── Init (called once on page load) ──────────────────────────────────────
+  async init() {
+    App._splash();
+    try {
+      const res = await api.me();
+      if (res && res.ok && res.data && res.data.username) {
+        App.boot(res.data);
+      } else {
+        App._showAuth();
+      }
+    } catch (e) {
+      // Network error or server not ready — show auth, don't reload
+      App._showAuth();
+    }
+  },
+
+  // ── Boot (called after successful login or valid session) ─────────────────
+  boot(user) {
+    App.user = user;
+    App._showApp();
+
+    document.getElementById('user-display').textContent   = user.display_name || user.username;
     document.getElementById('user-role-badge').textContent = user.role || '';
-    document.getElementById('user-avatar').textContent = (user.display_name || user.username || 'U')[0].toUpperCase();
+    document.getElementById('user-avatar').textContent    = (user.display_name || user.username || 'U')[0].toUpperCase();
 
-    App.setupNav();
+    App._setupNav();
     App.navigate('dashboard');
   },
 
-  setupNav() {
-    // Nav items
+  // ── Nav ───────────────────────────────────────────────────────────────────
+  _setupNav() {
     document.querySelectorAll('.nav-item[data-page]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        App.navigate(btn.dataset.page);
-        // Mobile: close sidebar
+      // Remove old listeners by cloning
+      const fresh = btn.cloneNode(true);
+      btn.parentNode.replaceChild(fresh, btn);
+      fresh.addEventListener('click', () => {
+        App.navigate(fresh.dataset.page);
         document.getElementById('sidebar').classList.remove('mobile-open');
       });
     });
 
-    // Sidebar toggle
-    document.getElementById('sidebar-toggle').addEventListener('click', () => {
+    document.getElementById('sidebar-toggle').onclick = () => {
       document.getElementById('sidebar').classList.toggle('collapsed');
-    });
+    };
 
-    // Sign out
-    document.getElementById('btn-signout').addEventListener('click', async () => {
-      await api.logout();
+    document.getElementById('btn-signout').onclick = async () => {
+      try { await api.logout(); } catch(e) {}
       App.user = null;
-      document.getElementById('app-shell').classList.add('hidden');
-      document.getElementById('auth-screen').classList.remove('hidden');
+      App._showAuth();
       showAuthView('login');
       document.getElementById('page-container').innerHTML = '';
-      sessionStorage.clear();
-    });
+    };
   },
 
   navigate(page) {
     App.currentPage = page;
-
-    // Update active nav
     document.querySelectorAll('.nav-item[data-page]').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.page === page);
     });
-
-    // Render page
     const container = document.getElementById('page-container');
-    const renderer = App.pages[page];
+    const renderer  = App.pages[page];
     if (renderer) {
       renderer(container);
     } else {
-      container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🚧</div><div class="empty-state-title">Page not found</div></div>`;
+      container.innerHTML = `<div class="empty-state">
+        <div class="empty-state-icon">🚧</div>
+        <div class="empty-state-title">Page not found: ${page}</div>
+      </div>`;
     }
   },
 
@@ -98,5 +108,5 @@ const App = window.App = {
   },
 };
 
-// Start
+// ── Start ─────────────────────────────────────────────────────────────────
 App.init();

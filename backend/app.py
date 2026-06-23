@@ -813,18 +813,28 @@ def health():
     return ok({"status": "ok", "timestamp": datetime.utcnow().isoformat()})
 
 
-if __name__ == "__main__":
-    # Bootstrap auth.json if missing
+def _bootstrap():
+    """Run once at startup — creates default auth.json if missing."""
     if not AUTH.exists():
-        import hashlib
         default_users = {"users": [
-            {"username": "admin",     "password_hash": hashlib.sha256(b"admin123").hexdigest(),     "display_name": "Administrator",     "role": "Super Admin",        "email": ""},
-            {"username": "planner",   "password_hash": hashlib.sha256(b"planner123").hexdigest(),   "display_name": "Production Planner","role": "Production Planner", "email": ""},
-            {"username": "warehouse", "password_hash": hashlib.sha256(b"warehouse123").hexdigest(), "display_name": "Warehouse User",    "role": "Warehouse User",     "email": ""},
-            {"username": "purchase",  "password_hash": hashlib.sha256(b"purchase123").hexdigest(),  "display_name": "Purchasing User",   "role": "Purchasing User",    "email": ""},
-            {"username": "viewer",    "password_hash": hashlib.sha256(b"view123").hexdigest(),      "display_name": "Management Viewer", "role": "Management Viewer",  "email": ""},
+            {"username": "admin",     "password_hash": _sha256("admin123"),     "display_name": "Administrator",      "role": "Super Admin",        "email": ""},
+            {"username": "planner",   "password_hash": _sha256("planner123"),   "display_name": "Production Planner", "role": "Production Planner", "email": ""},
+            {"username": "warehouse", "password_hash": _sha256("warehouse123"), "display_name": "Warehouse User",     "role": "Warehouse User",     "email": ""},
+            {"username": "purchase",  "password_hash": _sha256("purchase123"),  "display_name": "Purchasing User",    "role": "Purchasing User",    "email": ""},
+            {"username": "viewer",    "password_hash": _sha256("view123"),      "display_name": "Management Viewer",  "role": "Management Viewer",  "email": ""},
         ]}
         AUTH.parent.mkdir(parents=True, exist_ok=True)
         AUTH.write_text(json.dumps(default_users, indent=2))
-        print("✓ Default auth.json created")
-    app.run(debug=False, port=5000, host="0.0.0.0", use_reloader=False)
+        print("✓ Default auth.json created (admin/admin123)")
+
+# Bootstrap runs whenever this module is imported (by serve.py or directly)
+_bootstrap()
+
+
+if __name__ == "__main__":
+    print("=" * 60)
+    print("  JDK Smart Factory Platform v2.0")
+    print("  Open: http://localhost:5000")
+    print("  Default login: admin / admin123")
+    print("=" * 60)
+    app.run(debug=False, port=5000, host="0.0.0.0", use_reloader=False, threaded=True)

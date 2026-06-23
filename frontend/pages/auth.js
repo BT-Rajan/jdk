@@ -1,87 +1,95 @@
-/* ── Auth ─────────────────────────────────────────────────────────────────── */
+/* ── Auth ────────────────────────────────────────────────────────────────── */
 
 function showAuthView(view) {
   document.querySelectorAll('.auth-view').forEach(v => v.classList.remove('active'));
-  document.getElementById(`view-${view}`)?.classList.add('active');
+  const target = document.getElementById('view-' + view);
+  if (target) target.classList.add('active');
+  // Clear all error/success messages
   ['login-error','signup-error','signup-success','forgot-error','forgot-success'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) { el.classList.add('hidden'); el.textContent = ''; }
+    if (el) { el.textContent = ''; el.classList.add('hidden'); }
   });
 }
 
-function showFormError(id, msg) {
+function _setFormErr(id, msg) {
   const el = document.getElementById(id);
   if (el) { el.textContent = msg; el.classList.remove('hidden'); }
 }
 
-function showFormSuccess(id, msg) {
+function _setFormOk(id, msg) {
   const el = document.getElementById(id);
   if (el) { el.textContent = msg; el.classList.remove('hidden'); }
 }
 
-// Login
+// ── Login ────────────────────────────────────────────────────────────────
 document.getElementById('btn-login').addEventListener('click', async () => {
   const btn = document.getElementById('btn-login');
-  btn.disabled = true;
+  const u   = document.getElementById('login-user').value.trim();
+  const p   = document.getElementById('login-pw').value;
+
+  if (!u || !p) { _setFormErr('login-error', 'Username and password required'); return; }
+
+  btn.disabled    = true;
   btn.textContent = 'Signing in…';
-  const u = document.getElementById('login-user').value.trim();
-  const p = document.getElementById('login-pw').value;
+
   const res = await api.login(u, p);
-  btn.disabled = false;
+
+  btn.disabled    = false;
   btn.textContent = 'Sign in →';
-  if (res?.ok) {
-    sessionStorage.setItem('jdk_user', JSON.stringify(res.data));
-    window.App?.boot(res.data);
+
+  if (res && res.ok && res.data) {
+    App.boot(res.data);
   } else {
-    showFormError('login-error', res?.error || 'Login failed');
+    _setFormErr('login-error', res?.error || 'Login failed. Check credentials.');
   }
 });
 
-['login-user', 'login-pw'].forEach(id => {
-  document.getElementById(id)?.addEventListener('keydown', e => {
+// Enter key on login fields
+['login-user','login-pw'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => {
     if (e.key === 'Enter') document.getElementById('btn-login').click();
   });
 });
 
-// Signup
+// ── Signup ───────────────────────────────────────────────────────────────
 document.getElementById('btn-signup').addEventListener('click', async () => {
   const btn = document.getElementById('btn-signup');
-  btn.disabled = true;
-  btn.textContent = 'Creating…';
   const body = {
     display_name: document.getElementById('signup-name').value.trim(),
     username:     document.getElementById('signup-user').value.trim(),
     email:        document.getElementById('signup-email').value.trim(),
     password:     document.getElementById('signup-pw').value,
   };
+  if (!body.username || !body.password) {
+    _setFormErr('signup-error', 'Username and password required'); return;
+  }
+  btn.disabled = true; btn.textContent = 'Creating…';
   const res = await api.signup(body);
-  btn.disabled = false;
-  btn.textContent = 'Create Account →';
-  if (res?.ok) {
-    showFormSuccess('signup-success', 'Account created! Please sign in.');
+  btn.disabled = false; btn.textContent = 'Create Account →';
+  if (res && res.ok) {
+    _setFormOk('signup-success', '✓ Account created! Please sign in.');
     setTimeout(() => showAuthView('login'), 1500);
   } else {
-    showFormError('signup-error', res?.error || 'Signup failed');
+    _setFormErr('signup-error', res?.error || 'Signup failed');
   }
 });
 
-// Forgot password
+// ── Forgot Password ───────────────────────────────────────────────────────
 document.getElementById('btn-forgot').addEventListener('click', async () => {
-  const btn = document.getElementById('btn-forgot');
-  btn.disabled = true;
-  btn.textContent = 'Sending…';
+  const btn   = document.getElementById('btn-forgot');
   const ident = document.getElementById('forgot-ident').value.trim();
+  if (!ident) { _setFormErr('forgot-error', 'Enter your username or email'); return; }
+  btn.disabled = true; btn.textContent = 'Sending…';
   const body = ident.includes('@') ? { email: ident } : { username: ident };
-  const res = await api.forgotPw(body);
-  btn.disabled = false;
-  btn.textContent = 'Send Reset Link →';
-  if (res?.ok) {
+  const res  = await api.forgotPw(body);
+  btn.disabled = false; btn.textContent = 'Send Reset Link →';
+  if (res && res.ok) {
     const token = res.data?.reset_token;
-    const msg = token
-      ? `Reset token (dev mode): ${token}`
+    const msg   = token
+      ? 'Reset token (dev mode): ' + token
       : res.data?.message || 'Reset link sent.';
-    showFormSuccess('forgot-success', msg);
+    _setFormOk('forgot-success', msg);
   } else {
-    showFormError('forgot-error', res?.error || 'Account not found');
+    _setFormErr('forgot-error', res?.error || 'Account not found');
   }
 });
