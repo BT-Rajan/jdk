@@ -1,0 +1,4 @@
+[
+  { "customer": "Acme Constructions",   "customer_type": "Construction Company", "delivery_location": "Chennai",   "terms": "Net 30" },
+  { "customer": "BuildRight Developers","customer_type": "Developer",            "delivery_location": "Bangalore", "terms": "Net 15" }
+]

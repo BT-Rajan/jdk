@@ -1,59 +1,98 @@
-# JDK Smart Factory Platform — Enterprise Edition
+# JDK Smart Factory Platform v2.0
 
-## Run
+A modern, AI-powered Smart Manufacturing ERP — re-architected as a clean API + SPA.
+
+## Stack
+- **Backend**: Flask REST API (`backend/app.py`)
+- **Engine**: MRP Engine (`backend/mrp_engine.py`) — original business logic preserved
+- **Frontend**: Vanilla JS SPA (`frontend/`) — zero build step required
+- **AI**: DeepSeek Chat API — natural language factory assistant
+- **Storage**: JSON flat-files in `data/` and `config/` (zero-DB, easily upgradeable)
+
+## Quick Start
+
 ```bash
+# 1. Install dependencies
 pip install -r requirements.txt
-streamlit run app.py
+
+# 2. Start the platform (API + frontend, single port)
+python serve.py
+
+# 3. Open browser
+open http://localhost:5000
 ```
 
-## Login credentials
-Credentials are stored in `config/auth.json` as SHA-256 hashed passwords.
-**No plaintext secrets in source code.**
+## Default Logins
 
-| Username   | Password      | Role               |
-|------------|---------------|--------------------|
-| admin      | admin123      | Super Admin        |
-| planner    | planner123    | Production Planner |
-| warehouse  | warehouse123  | Warehouse User     |
-| purchase   | purchase123   | Purchasing User    |
-| viewer     | view123       | Management Viewer  |
+| Username  | Password     | Role                |
+|-----------|--------------|---------------------|
+| admin     | admin123     | Super Admin         |
+| planner   | planner123   | Production Planner  |
+| warehouse | warehouse123 | Warehouse User      |
+| purchase  | purchase123  | Purchasing User     |
+| viewer    | view123      | Management Viewer   |
 
-To add/change users, edit `config/auth.json`. Generate new hashes with:
-```python
-import hashlib
-hashlib.sha256("yourpassword".encode()).hexdigest()
+## API Endpoints
+
+All endpoints under `/api/`:
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/auth/login` | Sign in |
+| POST | `/api/auth/signup` | Create account |
+| POST | `/api/auth/forgot-password` | Request reset |
+| POST | `/api/auth/reset-password` | Apply reset token |
+| POST | `/api/auth/logout` | Sign out |
+| GET | `/api/auth/me` | Current user |
+| GET | `/api/dashboard` | Dashboard KPIs & data |
+| POST | `/api/chat` | AI chat (DeepSeek) |
+| GET/POST | `/api/settings` | App settings |
+| GET/POST | `/api/customers` | Customers |
+| GET/POST | `/api/products` | Products |
+| GET/POST | `/api/formulas/<product>` | Formula lines |
+| GET/POST | `/api/raw-materials` | Raw materials |
+| GET/POST | `/api/suppliers` | Suppliers |
+| GET/POST | `/api/inventory/finished-goods` | FG stock |
+| GET | `/api/inventory/health` | Inventory health |
+| POST | `/api/feasibility` | Single order feasibility |
+| GET/POST/PATCH/DELETE | `/api/orders` | Order management |
+| POST | `/api/mrp/run` | Full MRP run |
+| POST | `/api/mrp/export` | Export MRP to Excel |
+| GET | `/api/backup/master` | Download master data |
+| POST | `/api/restore/master` | Restore master data |
+
+## AI Chat (DeepSeek)
+
+1. Go to **Settings → AI / DeepSeek**
+2. Enter your API key from [platform.deepseek.com](https://platform.deepseek.com)
+3. Open **AI Chat** and ask anything in plain English
+
+## UI Configuration
+
+The frontend is fully configurable via CSS variables in `frontend/styles/tokens.css`.
+Change colours, fonts, spacing and radii without touching any component code.
+
+## Project Structure
+
 ```
-
-## Fixes in this release
-**Auth**
-- Credentials moved out of source code into `config/auth.json`
-- Passwords stored as SHA-256 hashes (never plaintext)
-- Login now uses username + password (not role selector)
-- `_authenticate()` validates hash; wrong credentials blocked cleanly
-
-**Engine (`mrp_engine.py`)**
-- `MRPConfig.from_dict()` ignores unknown config keys (no crash on extra fields)
-- `_to_kg()`: bag_size=0 now correctly falls back to product default (was silently wrong)
-- `inventory_health()` sorts CRITICAL → LOW → OK using a numeric key, not string sort
-- Empty reorder_alerts returns typed empty DataFrame (no KeyError on `.empty`)
-- Excel export: conditional row colouring now applied (ok/warn/err formats were defined but never used)
-- Excel export: `max_data` NaN guard prevents crash on single-row sheets
-- `_production_material_cost` cost rows use `None` for missing price (not string "—")
-
-**App (`app.py`)**
-- `_safe_cols()` helper: DataFrame column subset never crashes on missing columns
-- Formula form: pct pre-fill reset to 0.0 (not stale value from prior material selection)
-- `save_master()` now uses consistent `_alert()` helper (was mixing `st.success()`)
-- `st.session_state.reports` cleared before each new MRP run (no stale data displayed)
-- Restore: added "Confirm Restore" button guard before overwriting master data
-- Inventory page switched from `st.radio` to `st.tabs` (cleaner UX)
-- `_safe_cols()` applied to all DataFrame column subsets (no KeyError on new/missing fields)
-- All `pd.DataFrame(filtered)[cols]` calls guarded against missing columns
-
-**Design / responsiveness**
-- KPI cards use `height:100%` + consistent padding
-- `@media (max-width:768px)` breakpoint stacks columns on mobile
-- Nav pills use proper `data-checked` selector (active state reliable)
-- Login rendered as a centred card without broken column layout
-- Alert helper unified as `_alert()` throughout (no more mixed `st.error`/`st.success`)
-- Sidebar `min-width: 220px` prevents collapse on narrow desktops
+jdk/
+├── backend/
+│   ├── app.py              # Flask REST API (all endpoints)
+│   └── mrp_engine.py       # Core MRP business logic
+├── frontend/
+│   ├── index.html          # SPA shell
+│   ├── styles/
+│   │   ├── tokens.css      # Design tokens (UI config)
+│   │   ├── main.css        # Layout
+│   │   └── components.css  # UI components
+│   ├── components/
+│   │   ├── api.js          # API client
+│   │   ├── ui.js           # UI helpers
+│   │   └── app.js          # App controller / router
+│   └── pages/              # One file per page
+├── data/                   # JSON data store
+├── config/                 # auth.json, settings.json
+├── reports/                # Generated Excel reports
+├── serve.py                # Single-process launcher
+└── requirements.txt
+```
