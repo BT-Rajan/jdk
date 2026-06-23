@@ -33,10 +33,32 @@ for p in (DATA, CONFIG, REPORTS):
 
 # ── Flask app ─────────────────────────────────────────────────────────────────
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", secrets.token_hex(32))
+
+# Secret key must be STABLE across restarts — a new random key every start
+# invalidates all sessions and causes infinite reload loops in the browser.
+_KEY_FILE = CONFIG / ".secret_key"
+def _get_or_create_secret_key():
+    env_key = os.environ.get("SECRET_KEY", "")
+    if env_key:
+        return env_key
+    try:
+        if _KEY_FILE.exists():
+            return _KEY_FILE.read_text().strip()
+    except Exception:
+        pass
+    key = secrets.token_hex(32)
+    try:
+        _KEY_FILE.parent.mkdir(parents=True, exist_ok=True)
+        _KEY_FILE.write_text(key)
+    except Exception:
+        pass
+    return key
+
+app.secret_key = _get_or_create_secret_key()
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=False,   # allow HTTP on localhost/dev
     PERMANENT_SESSION_LIFETIME=timedelta(hours=8),
 )
 CORS(app, supports_credentials=True, origins=["*"])
@@ -805,4 +827,4 @@ if __name__ == "__main__":
         AUTH.parent.mkdir(parents=True, exist_ok=True)
         AUTH.write_text(json.dumps(default_users, indent=2))
         print("✓ Default auth.json created")
-    app.run(debug=True, port=5000)
+    app.run(debug=False, port=5000, host="0.0.0.0", use_reloader=False)
