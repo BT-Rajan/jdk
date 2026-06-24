@@ -19,9 +19,18 @@ const api = {
       return { ok: false, error: 'Cannot reach server. Is it running?' };
     }
 
-    // 401 = not logged in. NEVER call location.reload() — just return the error.
-    // app.js init() will show the auth screen; no infinite loop possible.
+    // 401 = session expired or not logged in.
+    // Show auth screen so user can re-login — never reload the page.
     if (res.status === 401) {
+      if (path !== '/api/auth/me' && path !== '/api/auth/login') {
+        // Session expired mid-use — kick back to login
+        if (window.App && window.App.user) {
+          window.App.user = null;
+          window.App._showAuth();
+          if (typeof showAuthView === 'function') showAuthView('login');
+          if (typeof toast === 'function') toast('Session expired — please sign in again', 'error', 5000);
+        }
+      }
       return { ok: false, error: 'Not authenticated' };
     }
 
