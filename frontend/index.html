@@ -169,6 +169,16 @@
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 2H2a1 1 0 00-1 1v8a1 1 0 001 1h3M9 10l3-3-3-3M12 7H5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Sign out
     </button>
+
+    <footer class="sidebar-footer">
+      <button id="theme-toggle" class="theme-toggle-btn" onclick="toggleTheme()" title="Switch theme">
+        <span id="theme-icon">☀️</span>
+        <span id="theme-label" class="nav-label">Light Mode</span>
+      </button>
+      <div class="sidebar-copyright nav-label">
+        © <span id="copy-year"></span> JDK Smart Factory<br>All rights reserved
+      </div>
+    </footer>
   </aside>
 
   <!-- Main Content -->
@@ -188,6 +198,13 @@
   </div>
 </div>
 
+<script>
+  // Apply saved theme immediately — before any other script runs — to avoid flash
+  (function() {
+    const saved = localStorage.getItem('jdk-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+  })();
+</script>
 <script src="components/api.js"></script>
 <script src="components/ui.js"></script>
 <script src="pages/auth.js"></script>

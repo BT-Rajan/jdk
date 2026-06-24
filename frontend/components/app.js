@@ -109,5 +109,28 @@ const App = window.App = {
   },
 };
 
+// ── Theme ──────────────────────────────────────────────────────────────────
+function _applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('jdk-theme', theme);
+  const icon  = document.getElementById('theme-icon');
+  const label = document.getElementById('theme-label');
+  if (icon)  icon.textContent  = theme === 'light' ? '🌙' : '☀️';
+  if (label) label.textContent = theme === 'light' ? 'Dark Mode'  : 'Light Mode';
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  _applyTheme(current === 'dark' ? 'light' : 'dark');
+}
+
+// Set copyright year
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('copy-year');
+  if (el) el.textContent = new Date().getFullYear();
+  // Sync toggle button label to current theme on load
+  _applyTheme(localStorage.getItem('jdk-theme') || 'dark');
+});
+
 // ── Start ─────────────────────────────────────────────────────────────────
 App.init();
