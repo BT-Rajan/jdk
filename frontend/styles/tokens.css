@@ -1,52 +1,5 @@
 /* ── JDK Smart Factory — Design Tokens ─────────────────────────────────── */
 
-/* ── Light theme overrides ────────────────────────────────────────────── */
-[data-theme="light"] {
-  --bg-base:        #f4f6f8;
-  --bg-surface:     #ffffff;
-  --bg-elevated:    #eef1f5;
-  --bg-hover:       #e5eaf0;
-  --bg-input:       #ffffff;
-
-  --border:         #d0d7de;
-  --border-focus:   #2563eb;
-
-  --text-primary:   #1a1f2e;
-  --text-secondary: #57606a;
-  --text-muted:     #9ba4b0;
-  --text-on-accent: #ffffff;
-
-  --accent:         #2563eb;
-  --accent-hover:   #1d4ed8;
-  --accent-glow:    rgba(37, 99, 235, 0.2);
-
-  --success:        #1a7f37;
-  --success-bg:     rgba(26, 127, 55, 0.1);
-  --success-text:   #1a7f37;
-
-  --warn:           #9a6700;
-  --warn-bg:        rgba(154, 103, 0, 0.1);
-  --warn-text:      #7d4e00;
-
-  --danger:         #cf222e;
-  --danger-bg:      rgba(207, 34, 46, 0.08);
-  --danger-text:    #a40e26;
-
-  --info:           #0969da;
-  --info-bg:        rgba(9, 105, 218, 0.08);
-  --info-text:      #0550ae;
-
-  --purple:         #6639ba;
-  --purple-bg:      rgba(102, 57, 186, 0.08);
-  --purple-text:    #512a97;
-
-  --sidebar-bg:     #1a1f2e;
-
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.14);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.18);
-}
-
 :root {
   /* Palette — dark-industrial with electric accent */
   --bg-base:        #0d1117;
@@ -110,4 +63,51 @@
   /* Transitions */
   --t-fast:   0.12s ease;
   --t-normal: 0.2s ease;
+}
+
+/* ── Light theme overrides — MUST come after :root to win specificity ──── */
+[data-theme="light"] {
+  --bg-base:        #f4f6f8;
+  --bg-surface:     #ffffff;
+  --bg-elevated:    #eef1f5;
+  --bg-hover:       #e5eaf0;
+  --bg-input:       #ffffff;
+
+  --border:         #d0d7de;
+  --border-focus:   #2563eb;
+
+  --text-primary:   #1a1f2e;
+  --text-secondary: #57606a;
+  --text-muted:     #9ba4b0;
+  --text-on-accent: #ffffff;
+
+  --accent:         #2563eb;
+  --accent-hover:   #1d4ed8;
+  --accent-glow:    rgba(37, 99, 235, 0.2);
+
+  --success:        #1a7f37;
+  --success-bg:     rgba(26, 127, 55, 0.1);
+  --success-text:   #1a7f37;
+
+  --warn:           #9a6700;
+  --warn-bg:        rgba(154, 103, 0, 0.1);
+  --warn-text:      #7d4e00;
+
+  --danger:         #cf222e;
+  --danger-bg:      rgba(207, 34, 46, 0.08);
+  --danger-text:    #a40e26;
+
+  --info:           #0969da;
+  --info-bg:        rgba(9, 105, 218, 0.08);
+  --info-text:      #0550ae;
+
+  --purple:         #6639ba;
+  --purple-bg:      rgba(102, 57, 186, 0.08);
+  --purple-text:    #512a97;
+
+  --sidebar-bg:     #1a1f2e;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.14);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.18);
 }
