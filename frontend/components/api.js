@@ -100,11 +100,11 @@ const api = {
 
   // Backup
   restoreMaster: (form) => api.upload('/api/restore/master', form),
-};
 
   // Production Schedules
-  getSchedules:       (q)       => api.get('/api/production-schedule' + (q ? '?' + new URLSearchParams(q) : '')),
-  createSchedule:     (b)       => api.post('/api/production-schedule', b),
-  updateSchedule:     (id, b)   => api.patch('/api/production-schedule/' + encodeURIComponent(id), b),
-  deleteSchedule:     (id)      => api.delete('/api/production-schedule/' + encodeURIComponent(id)),
-  scheduleAlerts:     ()        => api.get('/api/production-schedule/alerts'),
+  getSchedules:   (q)       => api.get('/api/production-schedule' + (q ? '?' + new URLSearchParams(q) : '')),
+  createSchedule: (b)       => api.post('/api/production-schedule', b),
+  updateSchedule: (id, b)   => api.patch('/api/production-schedule/' + encodeURIComponent(id), b),
+  deleteSchedule: (id)      => api.delete('/api/production-schedule/' + encodeURIComponent(id)),
+  scheduleAlerts: ()        => api.get('/api/production-schedule/alerts'),
+};
