@@ -838,3 +838,233 @@ if __name__ == "__main__":
     print("  Default login: admin / admin123")
     print("=" * 60)
     app.run(debug=False, port=5000, host="0.0.0.0", use_reloader=False, threaded=True)
+
+
+# ════════════════════════════════════════════════════════════════════════════ #
+#  PRODUCTION SCHEDULES                                                        #
+# ════════════════════════════════════════════════════════════════════════════ #
+
+SCHEDULES = DATA / "production_schedules.json"
+
+def _load_schedules():
+    return _load_json(SCHEDULES) if SCHEDULES.exists() else []
+
+def _save_schedules(data):
+    return _save_json(SCHEDULES, data)
+
+def _schedule_alerts(schedule: dict, master: dict, all_schedules: list) -> list:
+    """Return list of alert dicts for a single schedule entry."""
+    alerts = []
+    engine  = MRPEngine(master)
+    config  = engine.config
+    product = schedule.get("product", "")
+    qty_kg  = float(schedule.get("planned_qty_kg", 0))
+    manpower= float(schedule.get("manpower_available", 0))
+    manpower_req = float(schedule.get("manpower_required", 0))
+    start_str = schedule.get("start_date", "")
+    end_str   = schedule.get("end_date", "")
+
+    try:
+        start_dt = datetime.strptime(start_str, "%Y-%m-%d").date()
+        end_dt   = datetime.strptime(end_str,   "%Y-%m-%d").date()
+        work_days = max((end_dt - start_dt).days, 1)
+    except ValueError:
+        work_days = 1
+        start_dt = date.today()
+        end_dt   = start_dt
+
+    # ── Time / capacity check ────────────────────────────────────────────────
+    daily_cap = config.daily_production_capacity_kg
+    capacity_window = work_days * daily_cap
+    if qty_kg > capacity_window:
+        alerts.append({
+            "type": "TIME_SHORTAGE",
+            "severity": "CRITICAL",
+            "message": (
+                f"Planned {qty_kg:,.0f} kg exceeds {work_days}-day capacity "
+                f"({capacity_window:,.0f} kg at {daily_cap:,.0f} kg/day). "
+                f"Need {max(0, (qty_kg/daily_cap) - work_days):.1f} more days."
+            ),
+        })
+
+    # ── Manpower check ───────────────────────────────────────────────────────
+    if manpower_req > 0 and manpower < manpower_req:
+        deficit = manpower_req - manpower
+        alerts.append({
+            "type": "MANPOWER_SHORTAGE",
+            "severity": "CRITICAL",
+            "message": f"Manpower deficit: {manpower:.0f} available vs {manpower_req:.0f} required ({deficit:.0f} short).",
+        })
+
+    # ── Material availability check ──────────────────────────────────────────
+    if product and qty_kg > 0 and product in engine.products:
+        formula = engine.products[product].get("formula", {})
+        if formula:
+            try:
+                ratios = engine._ratios(formula)
+                for mat, ratio in ratios.items():
+                    required = qty_kg * ratio
+                    stock    = float(engine.inventory.get(mat, {}).get("current_stock", 0))
+                    shortage = max(required - stock, 0.0)
+                    lead     = float(engine.inventory.get(mat, {}).get("lead_time_days", 0))
+                    if shortage > 0:
+                        alerts.append({
+                            "type": "MATERIAL_SHORTAGE",
+                            "severity": "CRITICAL",
+                            "material": mat,
+                            "message": (
+                                f"Material shortage: {mat} needs {required:,.1f} kg, "
+                                f"only {stock:,.1f} kg in stock (short {shortage:,.1f} kg). "
+                                f"Lead time: {lead:.0f} days."
+                            ),
+                        })
+            except Exception:
+                pass
+        else:
+            alerts.append({
+                "type": "NO_FORMULA",
+                "severity": "WARNING",
+                "message": f"Product '{product}' has no formula configured — cannot verify material requirements.",
+            })
+    elif product and product not in engine.products:
+        alerts.append({
+            "type": "UNKNOWN_PRODUCT",
+            "severity": "WARNING",
+            "message": f"Product '{product}' not found in master data.",
+        })
+
+    # ── Overlap / double-booking check ───────────────────────────────────────
+    sid = schedule.get("schedule_id")
+    for other in all_schedules:
+        if other.get("schedule_id") == sid:
+            continue
+        try:
+            os_start = datetime.strptime(other.get("start_date", ""), "%Y-%m-%d").date()
+            os_end   = datetime.strptime(other.get("end_date",   ""), "%Y-%m-%d").date()
+            if start_dt <= os_end and end_dt >= os_start:
+                other_qty = float(other.get("planned_qty_kg", 0))
+                combined  = qty_kg + other_qty
+                window    = max((max(end_dt, os_end) - min(start_dt, os_start)).days, 1) * daily_cap
+                if combined > window:
+                    alerts.append({
+                        "type": "CAPACITY_OVERLAP",
+                        "severity": "WARNING",
+                        "message": (
+                            f"Schedule overlaps with {other.get('schedule_id')} ({other.get('product')}). "
+                            f"Combined demand {combined:,.0f} kg exceeds window capacity {window:,.0f} kg."
+                        ),
+                    })
+        except ValueError:
+            pass
+
+    return alerts
+
+
+@app.route("/api/production-schedule", methods=["GET"])
+@login_required
+def get_schedules():
+    schedules = _load_schedules()
+    master    = _load_master()
+    status_filter = request.args.get("status")
+    if status_filter:
+        schedules = [s for s in schedules if s.get("status") == status_filter]
+    # Enrich with alerts
+    all_sched = _load_schedules()
+    for s in schedules:
+        s["alerts"] = _schedule_alerts(s, master, all_sched)
+        s["alert_count"]  = len(s["alerts"])
+        s["has_shortage"]  = any(a["severity"] == "CRITICAL" for a in s["alerts"])
+    return ok(schedules)
+
+
+@app.route("/api/production-schedule", methods=["POST"])
+@require_perm("write", "admin")
+def create_schedule():
+    body = request.get_json() or {}
+    schedules = _load_schedules()
+    sched_id = body.get("schedule_id", f"PS-{len(schedules)+1:04d}").strip()
+    if any(s.get("schedule_id") == sched_id for s in schedules):
+        return err(f"Schedule ID '{sched_id}' already exists")
+    if float(body.get("planned_qty_kg", 0)) <= 0:
+        return err("Planned quantity must be positive")
+    schedule = {
+        "schedule_id":        sched_id,
+        "product":            body.get("product", ""),
+        "planned_qty_kg":     float(body.get("planned_qty_kg", 0)),
+        "start_date":         body.get("start_date", str(date.today())),
+        "end_date":           body.get("end_date", str(date.today())),
+        "shift":              body.get("shift", "Day"),
+        "manpower_available": float(body.get("manpower_available", 0)),
+        "manpower_required":  float(body.get("manpower_required", 0)),
+        "notes":              body.get("notes", ""),
+        "status":             body.get("status", "Planned"),
+        "linked_order_no":    body.get("linked_order_no", ""),
+        "created_at":         datetime.utcnow().isoformat(),
+        "created_by":         session["user"].get("username", ""),
+    }
+    schedules.append(schedule)
+    _save_schedules(schedules)
+    # Compute alerts after save
+    all_sched = _load_schedules()
+    master    = _load_master()
+    schedule["alerts"]      = _schedule_alerts(schedule, master, all_sched)
+    schedule["alert_count"] = len(schedule["alerts"])
+    schedule["has_shortage"] = any(a["severity"] == "CRITICAL" for a in schedule["alerts"])
+    return ok(schedule)
+
+
+@app.route("/api/production-schedule/<schedule_id>", methods=["PATCH"])
+@require_perm("write", "admin")
+def update_schedule(schedule_id):
+    body      = request.get_json() or {}
+    schedules = _load_schedules()
+    for s in schedules:
+        if s.get("schedule_id") == schedule_id:
+            allowed = {
+                "product", "planned_qty_kg", "start_date", "end_date",
+                "shift", "manpower_available", "manpower_required",
+                "notes", "status", "linked_order_no",
+            }
+            for k in allowed:
+                if k in body:
+                    s[k] = float(body[k]) if k in ("planned_qty_kg", "manpower_available", "manpower_required") else body[k]
+            s["updated_at"] = datetime.utcnow().isoformat()
+            _save_schedules(schedules)
+            all_sched = _load_schedules()
+            master    = _load_master()
+            s["alerts"]       = _schedule_alerts(s, master, all_sched)
+            s["alert_count"]  = len(s["alerts"])
+            s["has_shortage"] = any(a["severity"] == "CRITICAL" for a in s["alerts"])
+            return ok(s)
+    return err("Schedule not found", 404)
+
+
+@app.route("/api/production-schedule/<schedule_id>", methods=["DELETE"])
+@require_perm("write", "admin")
+def delete_schedule(schedule_id):
+    schedules = [s for s in _load_schedules() if s.get("schedule_id") != schedule_id]
+    _save_schedules(schedules)
+    return ok({"deleted": schedule_id})
+
+
+@app.route("/api/production-schedule/alerts", methods=["GET"])
+@login_required
+def schedule_alerts_summary():
+    schedules = _load_schedules()
+    master    = _load_master()
+    result = []
+    for s in schedules:
+        if s.get("status") in ("Completed", "Cancelled"):
+            continue
+        alerts = _schedule_alerts(s, master, schedules)
+        if alerts:
+            result.append({
+                "schedule_id": s.get("schedule_id"),
+                "product":     s.get("product"),
+                "start_date":  s.get("start_date"),
+                "end_date":    s.get("end_date"),
+                "alerts":      alerts,
+                "critical":    sum(1 for a in alerts if a["severity"] == "CRITICAL"),
+                "warnings":    sum(1 for a in alerts if a["severity"] == "WARNING"),
+            })
+    return ok(result)

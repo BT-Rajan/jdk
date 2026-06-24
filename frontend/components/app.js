@@ -102,6 +102,7 @@ const App = window.App = {
     inventory:   renderInventory,
     feasibility: renderFeasibility,
     orders:      renderOrders,
+    schedule:    renderSchedule,
     mrp:         renderMRP,
     backup:      renderBackup,
     settings:    renderSettings,
