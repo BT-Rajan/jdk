@@ -813,33 +813,6 @@ def health():
     return ok({"status": "ok", "timestamp": datetime.utcnow().isoformat()})
 
 
-def _bootstrap():
-    """Run once at startup — creates default auth.json if missing."""
-    if not AUTH.exists():
-        default_users = {"users": [
-            {"username": "admin",     "password_hash": _sha256("admin123"),     "display_name": "Administrator",      "role": "Super Admin",        "email": ""},
-            {"username": "planner",   "password_hash": _sha256("planner123"),   "display_name": "Production Planner", "role": "Production Planner", "email": ""},
-            {"username": "warehouse", "password_hash": _sha256("warehouse123"), "display_name": "Warehouse User",     "role": "Warehouse User",     "email": ""},
-            {"username": "purchase",  "password_hash": _sha256("purchase123"),  "display_name": "Purchasing User",    "role": "Purchasing User",    "email": ""},
-            {"username": "viewer",    "password_hash": _sha256("view123"),      "display_name": "Management Viewer",  "role": "Management Viewer",  "email": ""},
-        ]}
-        AUTH.parent.mkdir(parents=True, exist_ok=True)
-        AUTH.write_text(json.dumps(default_users, indent=2))
-        print("✓ Default auth.json created (admin/admin123)")
-
-# Bootstrap runs whenever this module is imported (by serve.py or directly)
-_bootstrap()
-
-
-if __name__ == "__main__":
-    print("=" * 60)
-    print("  JDK Smart Factory Platform v2.0")
-    print("  Open: http://localhost:5000")
-    print("  Default login: admin / admin123")
-    print("=" * 60)
-    app.run(debug=False, port=5000, host="0.0.0.0", use_reloader=False, threaded=True)
-
-
 # ════════════════════════════════════════════════════════════════════════════ #
 #  PRODUCTION SCHEDULES                                                        #
 # ════════════════════════════════════════════════════════════════════════════ #
@@ -968,12 +941,11 @@ def get_schedules():
     status_filter = request.args.get("status")
     if status_filter:
         schedules = [s for s in schedules if s.get("status") == status_filter]
-    # Enrich with alerts
     all_sched = _load_schedules()
     for s in schedules:
-        s["alerts"] = _schedule_alerts(s, master, all_sched)
-        s["alert_count"]  = len(s["alerts"])
-        s["has_shortage"]  = any(a["severity"] == "CRITICAL" for a in s["alerts"])
+        s["alerts"]      = _schedule_alerts(s, master, all_sched)
+        s["alert_count"] = len(s["alerts"])
+        s["has_shortage"] = any(a["severity"] == "CRITICAL" for a in s["alerts"])
     return ok(schedules)
 
 
@@ -1004,11 +976,10 @@ def create_schedule():
     }
     schedules.append(schedule)
     _save_schedules(schedules)
-    # Compute alerts after save
     all_sched = _load_schedules()
     master    = _load_master()
-    schedule["alerts"]      = _schedule_alerts(schedule, master, all_sched)
-    schedule["alert_count"] = len(schedule["alerts"])
+    schedule["alerts"]       = _schedule_alerts(schedule, master, all_sched)
+    schedule["alert_count"]  = len(schedule["alerts"])
     schedule["has_shortage"] = any(a["severity"] == "CRITICAL" for a in schedule["alerts"])
     return ok(schedule)
 
@@ -1068,3 +1039,30 @@ def schedule_alerts_summary():
                 "warnings":    sum(1 for a in alerts if a["severity"] == "WARNING"),
             })
     return ok(result)
+
+
+def _bootstrap():
+    """Run once at startup — creates default auth.json if missing."""
+    if not AUTH.exists():
+        default_users = {"users": [
+            {"username": "admin",     "password_hash": _sha256("admin123"),     "display_name": "Administrator",      "role": "Super Admin",        "email": ""},
+            {"username": "planner",   "password_hash": _sha256("planner123"),   "display_name": "Production Planner", "role": "Production Planner", "email": ""},
+            {"username": "warehouse", "password_hash": _sha256("warehouse123"), "display_name": "Warehouse User",     "role": "Warehouse User",     "email": ""},
+            {"username": "purchase",  "password_hash": _sha256("purchase123"),  "display_name": "Purchasing User",    "role": "Purchasing User",    "email": ""},
+            {"username": "viewer",    "password_hash": _sha256("view123"),      "display_name": "Management Viewer",  "role": "Management Viewer",  "email": ""},
+        ]}
+        AUTH.parent.mkdir(parents=True, exist_ok=True)
+        AUTH.write_text(json.dumps(default_users, indent=2))
+        print("✓ Default auth.json created (admin/admin123)")
+
+# Bootstrap runs whenever this module is imported (by serve.py or directly)
+_bootstrap()
+
+
+if __name__ == "__main__":
+    print("=" * 60)
+    print("  JDK Smart Factory Platform v2.0")
+    print("  Open: http://localhost:5000")
+    print("  Default login: admin / admin123")
+    print("=" * 60)
+    app.run(debug=False, port=5000, host="0.0.0.0", use_reloader=False, threaded=True)
