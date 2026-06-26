@@ -11,31 +11,46 @@
 </head>
 <body>
 
-<!-- ── Auth Screens ──────────────────────────────────────────────────────── -->
+<!-- ── Auth Screen — Fluent sign-in layout ────────────────────────────────── -->
 <div id="auth-screen" class="auth-screen hidden">
-  <div class="auth-bg-grid"></div>
-  <div class="auth-card">
-    <div class="auth-logo">
-      <div class="auth-logo-icon">⚙</div>
-      <h1 class="auth-logo-name">JDK Factory</h1>
-      <p class="auth-logo-sub">Smart Manufacturing Platform</p>
+
+  <!-- Left branding panel -->
+  <div class="auth-brand-panel">
+    <div class="auth-brand-logo">
+      <div class="auth-brand-grid">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <span class="auth-brand-name">JDK Smart Factory</span>
     </div>
+    <div class="auth-brand-tagline">
+      <h1>Manufacturing<br><strong>Intelligence</strong><br>Platform</h1>
+      <p>End-to-end production planning, inventory control, MRP, and real-time operational visibility — built for modern factories.</p>
+    </div>
+  </div>
+
+  <!-- Right auth panel -->
+  <div class="auth-right-panel">
+    <div class="auth-card">
 
     <!-- Login -->
     <div id="view-login" class="auth-view active">
+      <div class="auth-card-header">
+        <h2>Sign in</h2>
+        <p>Use your JDK Factory account</p>
+      </div>
       <div class="input-group">
         <label>Username</label>
-        <input id="login-user" type="text" placeholder="your username" autocomplete="username"/>
+        <input id="login-user" type="text" placeholder="username" autocomplete="username"/>
       </div>
       <div class="input-group">
         <label>Password</label>
-        <input id="login-pw" type="password" placeholder="••••••••" autocomplete="current-password"/>
+        <input id="login-pw" type="password" placeholder="Password" autocomplete="current-password"/>
       </div>
       <div id="login-error" class="form-error hidden"></div>
-      <button id="btn-login" class="btn btn-primary btn-full">Sign in →</button>
+      <button id="btn-login" class="btn btn-primary btn-full" style="height:36px;font-size:0.85rem;">Sign in</button>
       <div class="auth-links">
-        <button class="link-btn" onclick="showAuthView('signup')">Create account</button>
         <button class="link-btn" onclick="showAuthView('forgot')">Forgot password?</button>
+        <button class="link-btn" onclick="showAuthView('signup')">Create account</button>
       </div>
     </div>
 
@@ -102,12 +117,13 @@
         <button class="link-btn" onclick="showAuthView('login')">← Back to sign in</button>
       </div>
     </div>
-  </div>
-</div>
+    </div><!-- /.auth-card -->
+  </div><!-- /.auth-right-panel -->
+</div><!-- /#auth-screen -->
 
 <!-- ── Loading splash (shown until JS decides what to render) ──────────── -->
 <div id="splash-screen" class="splash-screen">
-  <div class="splash-icon">⚙</div>
+  <div class="splash-icon"><span></span><span></span><span></span><span></span></div>
   <div class="splash-text">JDK Smart Factory</div>
   <div class="splash-spinner"></div>
 </div>
@@ -118,7 +134,7 @@
   <aside id="sidebar" class="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-brand">
-        <span class="brand-icon">⚙</span>
+        <div class="brand-grid"><span></span><span></span><span></span><span></span></div>
         <div>
           <div class="brand-name">JDK Factory</div>
           <div class="brand-sub">Smart Platform</div>

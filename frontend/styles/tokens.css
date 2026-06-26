@@ -1,113 +1,152 @@
-/* ── JDK Smart Factory — Design Tokens ─────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   JDK Smart Factory — Fluent Design System (Microsoft Corporate)
+   Segoe UI · Fluent 2 · WinUI 3 palette
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Google Fonts — Segoe UI fallback stack ───────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Palette — dark-industrial with electric accent */
-  --bg-base:        #0d1117;
-  --bg-surface:     #161b22;
-  --bg-elevated:    #1c2128;
-  --bg-hover:       #21262d;
-  --bg-input:       #0d1117;
+  /* ── Typography ─────────────────────────────────────────────────────── */
+  --font-sans: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Cascadia Code', 'Consolas', monospace;
 
-  --border:         #30363d;
-  --border-focus:   #58a6ff;
+  /* ── Dark palette (Fluent dark shell) ───────────────────────────────── */
+  --bg-base:        #141414;   /* shell / sidebar */
+  --bg-surface:     #1c1c1c;   /* cards */
+  --bg-elevated:    #242424;   /* inputs, elevated surfaces */
+  --bg-hover:       #2d2d2d;   /* hover state */
+  --bg-input:       #1c1c1c;
 
-  --text-primary:   #e6edf3;
-  --text-secondary: #8b949e;
-  --text-muted:     #484f58;
-  --text-on-accent: #ffffff;
+  --border:         #3d3d3d;
+  --border-subtle:  #292929;
+  --border-focus:   #60cdff;   /* Fluent brand blue focus ring */
 
-  --accent:         #3b82f6;
-  --accent-hover:   #2563eb;
-  --accent-glow:    rgba(59, 130, 246, 0.25);
+  --text-primary:   #ffffff;
+  --text-secondary: #d1d1d1;
+  --text-muted:     #8a8a8a;
+  --text-disabled:  #5c5c5c;
+  --text-on-accent: #000000;
 
-  --success:        #2da44e;
-  --success-bg:     rgba(45, 164, 78, 0.12);
-  --success-text:   #56d364;
+  /* ── Fluent Brand Blue ──────────────────────────────────────────────── */
+  --accent:         #0078d4;   /* MS blue */
+  --accent-dark:    #005a9e;
+  --accent-light:   #60cdff;
+  --accent-hover:   #106ebe;
+  --accent-pressed: #005a9e;
+  --accent-glow:    rgba(0, 120, 212, 0.25);
 
-  --warn:           #d29922;
-  --warn-bg:        rgba(210, 153, 34, 0.12);
-  --warn-text:      #e3b341;
+  /* ── Semantic colours ───────────────────────────────────────────────── */
+  --success:        #107c10;
+  --success-bg:     rgba(16, 124, 16, 0.15);
+  --success-text:   #54b054;
+  --success-border: #107c10;
 
-  --danger:         #da3633;
-  --danger-bg:      rgba(218, 54, 51, 0.12);
-  --danger-text:    #f85149;
+  --warn:           #c19c00;
+  --warn-bg:        rgba(255, 185, 0, 0.12);
+  --warn-text:      #ffd335;
+  --warn-border:    #c19c00;
 
-  --info:           #388bfd;
-  --info-bg:        rgba(56, 139, 253, 0.1);
-  --info-text:      #58a6ff;
+  --danger:         #c50f1f;
+  --danger-bg:      rgba(197, 15, 31, 0.12);
+  --danger-text:    #fc5a5a;
+  --danger-border:  #c50f1f;
 
-  --purple:         #8957e5;
-  --purple-bg:      rgba(137, 87, 229, 0.12);
-  --purple-text:    #bc8cff;
+  --info:           #0078d4;
+  --info-bg:        rgba(0, 120, 212, 0.12);
+  --info-text:      #60cdff;
+  --info-border:    #0078d4;
 
-  /* Sidebar */
-  --sidebar-w:      240px;
-  --sidebar-bg:     #0d1117;
+  --purple:         #7160e8;
+  --purple-bg:      rgba(113, 96, 232, 0.12);
+  --purple-text:    #a89af5;
 
-  /* Typography */
-  --font-sans:      'Inter', system-ui, sans-serif;
-  --font-mono:      'JetBrains Mono', monospace;
+  /* ── Layout ─────────────────────────────────────────────────────────── */
+  --sidebar-w:      260px;
+  --sidebar-bg:     #141414;
+  --topbar-h:       48px;
 
-  /* Radii */
-  --r-sm:   6px;
-  --r-md:   10px;
-  --r-lg:   14px;
-  --r-xl:   20px;
+  /* ── Radii (Fluent uses subtle rounding) ────────────────────────────── */
+  --r-xs:   2px;
+  --r-sm:   4px;
+  --r-md:   6px;
+  --r-lg:   8px;
+  --r-xl:   12px;
+  --r-2xl:  16px;
   --r-full: 9999px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.5);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.6);
+  /* ── Shadows ────────────────────────────────────────────────────────── */
+  --shadow-2:  0 1px 2px rgba(0,0,0,0.5);
+  --shadow-4:  0 2px 4px rgba(0,0,0,0.5);
+  --shadow-8:  0 4px 8px rgba(0,0,0,0.5);
+  --shadow-16: 0 8px 16px rgba(0,0,0,0.5);
+  --shadow-64: 0 32px 64px rgba(0,0,0,0.6);
+  --shadow-sm: var(--shadow-4);
+  --shadow-md: var(--shadow-8);
+  --shadow-lg: var(--shadow-16);
 
-  /* Transitions */
-  --t-fast:   0.12s ease;
-  --t-normal: 0.2s ease;
+  /* ── Transitions ────────────────────────────────────────────────────── */
+  --t-fast:   83ms cubic-bezier(0.33, 0, 0.67, 1);
+  --t-normal: 167ms cubic-bezier(0.33, 0, 0.67, 1);
+  --t-slow:   250ms cubic-bezier(0.33, 0, 0.67, 1);
 }
 
-/* ── Light theme overrides — MUST come after :root to win specificity ──── */
+/* ══════════════════════════════════════════════════════════════════════════
+   Light theme — Fluent light shell
+   ══════════════════════════════════════════════════════════════════════════ */
 [data-theme="light"] {
-  --bg-base:        #f4f6f8;
+  --bg-base:        #f3f3f3;
   --bg-surface:     #ffffff;
-  --bg-elevated:    #eef1f5;
-  --bg-hover:       #e5eaf0;
+  --bg-elevated:    #fafafa;
+  --bg-hover:       #f5f5f5;
   --bg-input:       #ffffff;
 
-  --border:         #d0d7de;
-  --border-focus:   #2563eb;
+  --border:         #e0e0e0;
+  --border-subtle:  #ededed;
+  --border-focus:   #0078d4;
 
-  --text-primary:   #1a1f2e;
-  --text-secondary: #57606a;
-  --text-muted:     #9ba4b0;
+  --text-primary:   #141414;
+  --text-secondary: #424242;
+  --text-muted:     #767676;
+  --text-disabled:  #bdbdbd;
   --text-on-accent: #ffffff;
 
-  --accent:         #2563eb;
-  --accent-hover:   #1d4ed8;
-  --accent-glow:    rgba(37, 99, 235, 0.2);
+  --accent:         #0078d4;
+  --accent-dark:    #005a9e;
+  --accent-light:   #2899f5;
+  --accent-hover:   #106ebe;
+  --accent-pressed: #005a9e;
+  --accent-glow:    rgba(0, 120, 212, 0.18);
 
-  --success:        #1a7f37;
-  --success-bg:     rgba(26, 127, 55, 0.1);
-  --success-text:   #1a7f37;
+  --success:        #107c10;
+  --success-bg:     rgba(16, 124, 16, 0.08);
+  --success-text:   #0d6b0d;
+  --success-border: #107c10;
 
-  --warn:           #9a6700;
-  --warn-bg:        rgba(154, 103, 0, 0.1);
-  --warn-text:      #7d4e00;
+  --warn:           #835b00;
+  --warn-bg:        rgba(255, 185, 0, 0.1);
+  --warn-text:      #6d4c00;
+  --warn-border:    #835b00;
 
-  --danger:         #cf222e;
-  --danger-bg:      rgba(207, 34, 46, 0.08);
-  --danger-text:    #a40e26;
+  --danger:         #c50f1f;
+  --danger-bg:      rgba(197, 15, 31, 0.08);
+  --danger-text:    #a80000;
+  --danger-border:  #c50f1f;
 
-  --info:           #0969da;
-  --info-bg:        rgba(9, 105, 218, 0.08);
-  --info-text:      #0550ae;
+  --info:           #0078d4;
+  --info-bg:        rgba(0, 120, 212, 0.08);
+  --info-text:      #005a9e;
+  --info-border:    #0078d4;
 
-  --purple:         #6639ba;
-  --purple-bg:      rgba(102, 57, 186, 0.08);
-  --purple-text:    #512a97;
+  --purple:         #7160e8;
+  --purple-bg:      rgba(113, 96, 232, 0.08);
+  --purple-text:    #5c4dc4;
 
-  --sidebar-bg:     #1a1f2e;
+  --sidebar-bg:     #141414;
 
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.14);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.18);
+  --shadow-2:  0 1px 2px rgba(0,0,0,0.08);
+  --shadow-4:  0 2px 4px rgba(0,0,0,0.1);
+  --shadow-8:  0 4px 8px rgba(0,0,0,0.12);
+  --shadow-16: 0 8px 16px rgba(0,0,0,0.14);
+  --shadow-64: 0 32px 64px rgba(0,0,0,0.2);
 }
