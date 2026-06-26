@@ -5,10 +5,13 @@ function showAuthView(view) {
   const target = document.getElementById('view-' + view);
   if (target) target.classList.add('active');
   // Clear all error/success messages
-  ['login-error','signup-error','signup-success','forgot-error','forgot-success'].forEach(id => {
+  ['login-error','signup-error','signup-success','forgot-error','forgot-success','reset-error','reset-success'].forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.textContent = ''; el.classList.add('hidden'); }
   });
+  // Hide reset section when leaving forgot view
+  const resetSection = document.getElementById('forgot-reset-section');
+  if (resetSection) resetSection.classList.add('hidden');
 }
 
 function _setFormErr(id, msg) {
@@ -78,18 +81,45 @@ document.getElementById('btn-signup').addEventListener('click', async () => {
 document.getElementById('btn-forgot').addEventListener('click', async () => {
   const btn   = document.getElementById('btn-forgot');
   const ident = document.getElementById('forgot-ident').value.trim();
-  if (!ident) { _setFormErr('forgot-error', 'Enter your username or email'); return; }
-  btn.disabled = true; btn.textContent = 'Sending…';
-  const body = ident.includes('@') ? { email: ident } : { username: ident };
-  const res  = await api.forgotPw(body);
-  btn.disabled = false; btn.textContent = 'Send Reset Link →';
+  if (!ident) { _setFormErr('forgot-error', 'Enter your username'); return; }
+  btn.disabled = true; btn.textContent = 'Please wait…';
+  const res = await api.forgotPw({ username: ident });
+  btn.disabled = false; btn.textContent = 'Get Reset Token →';
   if (res && res.ok) {
     const token = res.data?.reset_token;
-    const msg   = token
-      ? 'Reset token (dev mode): ' + token
-      : res.data?.message || 'Reset link sent.';
-    _setFormOk('forgot-success', msg);
+    if (token) {
+      // Auto-fill the token and reveal the reset section
+      document.getElementById('reset-token-input').value = token;
+      _setFormOk('forgot-success', 'Token generated — enter a new password below.');
+      document.getElementById('forgot-reset-section').classList.remove('hidden');
+    } else {
+      _setFormOk('forgot-success', res.data?.message || 'Check your email for the reset link.');
+    }
   } else {
     _setFormErr('forgot-error', res?.error || 'Account not found');
+  }
+});
+
+// ── Reset Password ─────────────────────────────────────────────────────────
+document.getElementById('btn-reset-pw').addEventListener('click', async () => {
+  const btn     = document.getElementById('btn-reset-pw');
+  const token   = document.getElementById('reset-token-input').value.trim();
+  const pw      = document.getElementById('reset-new-pw').value;
+  const confirm = document.getElementById('reset-confirm-pw').value;
+
+  if (!token)          { _setFormErr('reset-error', 'Token is required'); return; }
+  if (pw.length < 6)   { _setFormErr('reset-error', 'Password must be at least 6 characters'); return; }
+  if (pw !== confirm)  { _setFormErr('reset-error', 'Passwords do not match'); return; }
+
+  btn.disabled = true; btn.textContent = 'Resetting…';
+  const res = await api.resetPw({ token, password: pw });
+  btn.disabled = false; btn.textContent = 'Reset Password →';
+
+  if (res && res.ok) {
+    _setFormOk('reset-success', 'Password updated! Redirecting to sign in…');
+    document.getElementById('reset-error').classList.add('hidden');
+    setTimeout(() => showAuthView('login'), 1800);
+  } else {
+    _setFormErr('reset-error', res?.error || 'Reset failed — token may have expired');
   }
 });

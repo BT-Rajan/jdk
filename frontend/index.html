@@ -67,14 +67,37 @@
 
     <!-- Forgot Password -->
     <div id="view-forgot" class="auth-view">
-      <p class="auth-hint">Enter your username or email to receive a reset link.</p>
-      <div class="input-group">
-        <label>Username or Email</label>
-        <input id="forgot-ident" type="text" placeholder="username or email"/>
+      <p class="auth-hint">Enter your username to get a reset token.</p>
+      <div id="forgot-request-section">
+        <div class="input-group">
+          <label>Username</label>
+          <input id="forgot-ident" type="text" placeholder="your username"/>
+        </div>
+        <div id="forgot-error" class="form-error hidden"></div>
+        <div id="forgot-success" class="form-success hidden"></div>
+        <button id="btn-forgot" class="btn btn-primary btn-full">Get Reset Token →</button>
       </div>
-      <div id="forgot-error" class="form-error hidden"></div>
-      <div id="forgot-success" class="form-success hidden"></div>
-      <button id="btn-forgot" class="btn btn-primary btn-full">Send Reset Link →</button>
+
+      <!-- Reset form — shown after token is returned -->
+      <div id="forgot-reset-section" class="hidden" style="margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem;">
+        <p class="auth-hint" style="margin-bottom:.75rem;">Enter the token below and choose a new password.</p>
+        <div class="input-group">
+          <label>Reset Token</label>
+          <input id="reset-token-input" type="text" placeholder="paste token here"/>
+        </div>
+        <div class="input-group">
+          <label>New Password</label>
+          <input id="reset-new-pw" type="password" placeholder="min 6 characters"/>
+        </div>
+        <div class="input-group">
+          <label>Confirm Password</label>
+          <input id="reset-confirm-pw" type="password" placeholder="repeat password"/>
+        </div>
+        <div id="reset-error"   class="form-error hidden"></div>
+        <div id="reset-success" class="form-success hidden"></div>
+        <button id="btn-reset-pw" class="btn btn-primary btn-full">Reset Password →</button>
+      </div>
+
       <div class="auth-links">
         <button class="link-btn" onclick="showAuthView('login')">← Back to sign in</button>
       </div>
