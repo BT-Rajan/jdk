@@ -128,6 +128,8 @@ function toggleTheme() {
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('copy-year');
   if (el) el.textContent = new Date().getFullYear();
+  const authYearEl = document.getElementById('auth-copy-year');
+  if (authYearEl) authYearEl.textContent = new Date().getFullYear();
   // Sync toggle button label to current theme on load
   _applyTheme(localStorage.getItem('jdk-theme') || 'dark');
 });

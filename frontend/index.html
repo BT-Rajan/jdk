@@ -11,114 +11,127 @@
 </head>
 <body>
 
-<!-- ── Auth Screen — Fluent sign-in layout ────────────────────────────────── -->
+<!-- ── Auth Screen — 3-row layout (header / two-column body / footer) ─────── -->
 <div id="auth-screen" class="auth-screen hidden">
 
-  <!-- Left branding panel -->
-  <div class="auth-brand-panel">
+  <!-- Row 1: Header — centred both horizontally and vertically -->
+  <div class="auth-header-row">
     <div class="auth-brand-logo">
       <div class="auth-brand-grid">
         <span></span><span></span><span></span><span></span>
       </div>
       <span class="auth-brand-name">JDK Smart Factory</span>
     </div>
-    <div class="auth-brand-tagline">
-      <h1>Manufacturing<br><strong>Intelligence</strong><br>Platform</h1>
-      <p>End-to-end production planning, inventory control, MRP, and real-time operational visibility — built for modern factories.</p>
-    </div>
+    <p class="auth-brand-subtitle">Manufacturing Intelligence Platform</p>
   </div>
 
-  <!-- Right auth panel -->
-  <div class="auth-right-panel">
-    <div class="auth-card">
+  <!-- Row 2: Body — split into two columns -->
+  <div class="auth-body-row">
 
-    <!-- Login -->
-    <div id="view-login" class="auth-view active">
-      <div class="auth-card-header">
-        <h2>Sign in</h2>
-        <p>Use your JDK Factory account</p>
-      </div>
-      <div class="input-group">
-        <label>Username</label>
-        <input id="login-user" type="text" placeholder="username" autocomplete="username"/>
-      </div>
-      <div class="input-group">
-        <label>Password</label>
-        <input id="login-pw" type="password" placeholder="Password" autocomplete="current-password"/>
-      </div>
-      <div id="login-error" class="form-error hidden"></div>
-      <button id="btn-login" class="btn btn-primary btn-full" style="height:36px;font-size:0.85rem;">Sign in</button>
-      <div class="auth-links">
-        <button class="link-btn" onclick="showAuthView('forgot')">Forgot password?</button>
-        <button class="link-btn" onclick="showAuthView('signup')">Create account</button>
+    <!-- Left column: description -->
+    <div class="auth-brand-panel">
+      <div class="auth-brand-tagline">
+        <p>End-to-end production planning, inventory control, MRP, and real-time operational visibility — built for modern factories.</p>
       </div>
     </div>
 
-    <!-- Signup -->
-    <div id="view-signup" class="auth-view">
-      <div class="input-group">
-        <label>Full Name</label>
-        <input id="signup-name" type="text" placeholder="Alex Johnson"/>
-      </div>
-      <div class="input-group">
-        <label>Username</label>
-        <input id="signup-user" type="text" placeholder="alexj"/>
-      </div>
-      <div class="input-group">
-        <label>Email</label>
-        <input id="signup-email" type="email" placeholder="alex@company.com"/>
-      </div>
-      <div class="input-group">
-        <label>Password</label>
-        <input id="signup-pw" type="password" placeholder="min 6 characters"/>
-      </div>
-      <div id="signup-error" class="form-error hidden"></div>
-      <div id="signup-success" class="form-success hidden"></div>
-      <button id="btn-signup" class="btn btn-primary btn-full">Create Account →</button>
-      <div class="auth-links">
-        <button class="link-btn" onclick="showAuthView('login')">← Back to sign in</button>
-      </div>
-    </div>
+    <!-- Right column: login panel -->
+    <div class="auth-right-panel">
+      <div class="auth-card">
 
-    <!-- Forgot Password -->
-    <div id="view-forgot" class="auth-view">
-      <p class="auth-hint">Enter your username to get a reset token.</p>
-      <div id="forgot-request-section">
+      <!-- Login -->
+      <div id="view-login" class="auth-view active">
+        <div class="auth-card-header">
+          <h2>Sign in</h2>
+          <p>Use your JDK Factory account</p>
+        </div>
         <div class="input-group">
           <label>Username</label>
-          <input id="forgot-ident" type="text" placeholder="your username"/>
+          <input id="login-user" type="text" placeholder="username" autocomplete="username"/>
         </div>
-        <div id="forgot-error" class="form-error hidden"></div>
-        <div id="forgot-success" class="form-success hidden"></div>
-        <button id="btn-forgot" class="btn btn-primary btn-full">Get Reset Token →</button>
+        <div class="input-group">
+          <label>Password</label>
+          <input id="login-pw" type="password" placeholder="Password" autocomplete="current-password"/>
+        </div>
+        <div id="login-error" class="form-error hidden"></div>
+        <button id="btn-login" class="btn btn-primary btn-full" style="height:36px;font-size:0.85rem;">Sign in</button>
+        <div class="auth-links">
+          <button class="link-btn" onclick="showAuthView('forgot')">Forgot password?</button>
+          <button class="link-btn" onclick="showAuthView('signup')">Create account</button>
+        </div>
       </div>
 
-      <!-- Reset form — shown after token is returned -->
-      <div id="forgot-reset-section" class="hidden" style="margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem;">
-        <p class="auth-hint" style="margin-bottom:.75rem;">Enter the token below and choose a new password.</p>
+      <!-- Signup -->
+      <div id="view-signup" class="auth-view">
         <div class="input-group">
-          <label>Reset Token</label>
-          <input id="reset-token-input" type="text" placeholder="paste token here"/>
+          <label>Full Name</label>
+          <input id="signup-name" type="text" placeholder="Alex Johnson"/>
         </div>
         <div class="input-group">
-          <label>New Password</label>
-          <input id="reset-new-pw" type="password" placeholder="min 6 characters"/>
+          <label>Username</label>
+          <input id="signup-user" type="text" placeholder="alexj"/>
         </div>
         <div class="input-group">
-          <label>Confirm Password</label>
-          <input id="reset-confirm-pw" type="password" placeholder="repeat password"/>
+          <label>Email</label>
+          <input id="signup-email" type="email" placeholder="alex@company.com"/>
         </div>
-        <div id="reset-error"   class="form-error hidden"></div>
-        <div id="reset-success" class="form-success hidden"></div>
-        <button id="btn-reset-pw" class="btn btn-primary btn-full">Reset Password →</button>
+        <div class="input-group">
+          <label>Password</label>
+          <input id="signup-pw" type="password" placeholder="min 6 characters"/>
+        </div>
+        <div id="signup-error" class="form-error hidden"></div>
+        <div id="signup-success" class="form-success hidden"></div>
+        <button id="btn-signup" class="btn btn-primary btn-full">Create Account →</button>
+        <div class="auth-links">
+          <button class="link-btn" onclick="showAuthView('login')">← Back to sign in</button>
+        </div>
       </div>
 
-      <div class="auth-links">
-        <button class="link-btn" onclick="showAuthView('login')">← Back to sign in</button>
+      <!-- Forgot Password -->
+      <div id="view-forgot" class="auth-view">
+        <p class="auth-hint">Enter your username to get a reset token.</p>
+        <div id="forgot-request-section">
+          <div class="input-group">
+            <label>Username</label>
+            <input id="forgot-ident" type="text" placeholder="your username"/>
+          </div>
+          <div id="forgot-error" class="form-error hidden"></div>
+          <div id="forgot-success" class="form-success hidden"></div>
+          <button id="btn-forgot" class="btn btn-primary btn-full">Get Reset Token →</button>
+        </div>
+
+        <!-- Reset form — shown after token is returned -->
+        <div id="forgot-reset-section" class="hidden" style="margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem;">
+          <p class="auth-hint" style="margin-bottom:.75rem;">Enter the token below and choose a new password.</p>
+          <div class="input-group">
+            <label>Reset Token</label>
+            <input id="reset-token-input" type="text" placeholder="paste token here"/>
+          </div>
+          <div class="input-group">
+            <label>New Password</label>
+            <input id="reset-new-pw" type="password" placeholder="min 6 characters"/>
+          </div>
+          <div class="input-group">
+            <label>Confirm Password</label>
+            <input id="reset-confirm-pw" type="password" placeholder="repeat password"/>
+          </div>
+          <div id="reset-error"   class="form-error hidden"></div>
+          <div id="reset-success" class="form-success hidden"></div>
+          <button id="btn-reset-pw" class="btn btn-primary btn-full">Reset Password →</button>
+        </div>
+
+        <div class="auth-links">
+          <button class="link-btn" onclick="showAuthView('login')">← Back to sign in</button>
+        </div>
       </div>
-    </div>
-    </div><!-- /.auth-card -->
-  </div><!-- /.auth-right-panel -->
+      </div><!-- /.auth-card -->
+    </div><!-- /.auth-right-panel -->
+  </div><!-- /.auth-body-row -->
+
+  <!-- Row 3: Footer -->
+  <footer class="auth-footer">
+    © <span id="auth-copy-year"></span> JDK Smart Factory — All rights reserved
+  </footer>
 </div><!-- /#auth-screen -->
 
 <!-- ── Loading splash (shown until JS decides what to render) ──────────── -->
