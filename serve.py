@@ -42,7 +42,6 @@ if __name__ == '__main__':
     print("=" * 60)
     print("  JDK Smart Factory Platform v2.0")
     print("  Open: http://localhost:5000")
-    print("  Default login: admin / admin123")
     print("=" * 60)
     app.run(
         host='0.0.0.0',

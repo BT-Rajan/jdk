@@ -37,8 +37,11 @@ pip install -r requirements.txt
 python serve.py
 ```
 
-The app creates a default **admin / admin123** user on first boot if the
-users table is empty.
+The app creates a default `admin` user automatically on first boot, only if
+the `users` table is empty. Set `DEFAULT_ADMIN_PASSWORD` in `.env` beforehand
+to choose its password yourself; otherwise a random one is generated and
+**not printed anywhere** — use "Forgot password" on the login screen to set
+your own via a reset token.
 
 ## 6. Migrate existing JSON data (one-time)
 If you have existing data in `data/` JSON files, call the migration endpoint

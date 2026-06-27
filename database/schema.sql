@@ -143,13 +143,10 @@ CREATE TABLE IF NOT EXISTS production_schedules (
   updated_at          DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- ── Default admin user (password: admin123) ───────────────────────────────────
-INSERT IGNORE INTO users (username, password_hash, role)
-VALUES (
-  'admin',
-  'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3',  -- SHA-256 of 'admin123'
-  'admin'
-);
+-- Note: the first 'admin' user is created automatically by the app on first
+-- boot (see backend/app.py _bootstrap()) when this users table is empty —
+-- not seeded here, so no credential ever lives in source control. Set
+-- DEFAULT_ADMIN_PASSWORD in your .env to control it.
 
 -- ── Default factory config ────────────────────────────────────────────────────
 INSERT IGNORE INTO factory_config (key_name, val) VALUES

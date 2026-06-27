@@ -864,8 +864,14 @@ def _bootstrap():
         return
     users = db.get_all_users()
     if not users:
-        db.create_user("admin", "admin123", role="admin")
-        print("✔  Default admin created (admin / admin123)")
+        default_password = os.environ.get("DEFAULT_ADMIN_PASSWORD") or secrets.token_urlsafe(12)
+        db.create_user("admin", default_password, role="admin")
+        if os.environ.get("DEFAULT_ADMIN_PASSWORD"):
+            print("✔  Default admin user 'admin' created using DEFAULT_ADMIN_PASSWORD from .env")
+        else:
+            print("✔  Default admin user 'admin' created with a generated password.")
+            print("   Set DEFAULT_ADMIN_PASSWORD in .env before first run to choose it yourself,")
+            print("   or use the 'Forgot password' flow to set a new one now.")
     print(f"✔  MySQL connected — {len(users) or 1} user(s)")
 
 _bootstrap()
@@ -874,6 +880,5 @@ if __name__ == "__main__":
     print("=" * 60)
     print("  JDK Smart Factory Platform v3.0 — MySQL Edition")
     print("  Open: http://localhost:5000")
-    print("  Default login: admin / admin123")
     print("=" * 60)
     app.run(debug=False, port=5000, host="0.0.0.0", use_reloader=False, threaded=True)

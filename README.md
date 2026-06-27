@@ -22,15 +22,22 @@ python serve.py
 open http://localhost:5000
 ```
 
-## Default Logins
+## Default Login
 
-| Username  | Password     | Role                |
-|-----------|--------------|---------------------|
-| admin     | admin123     | Super Admin         |
-| planner   | planner123   | Production Planner  |
-| warehouse | warehouse123 | Warehouse User      |
-| purchase  | purchase123  | Purchasing User     |
-| viewer    | view123      | Management Viewer   |
+On first boot (when the `users` table is empty), the app creates a single
+default `admin` account automatically. To control its password, set
+`DEFAULT_ADMIN_PASSWORD` in your `.env` file **before** the first run:
+
+```
+DEFAULT_ADMIN_PASSWORD=choose-a-strong-password
+```
+
+If you don't set it, a random password is generated and **not printed
+anywhere** — use the "Forgot password" flow on the login screen right after
+first boot to set your own password via a reset token.
+
+For local testing with realistic data and one login per role, see
+`database/seed.sql` (documented in `database/README.md`).
 
 ## API Endpoints
 
