@@ -84,6 +84,11 @@ python serve.py
 
 This launches the Flask API and serves the frontend SPA from a single port.
 
+The app can equally be started with `python backend/app.py` or `python run.py`
+— all three are interchangeable entry points to the same Flask app and all
+serve the API and frontend together. `serve.py` is recommended since it
+prints a clearer startup banner.
+
 ## 7. Open the app
 
 Navigate to:
@@ -107,8 +112,9 @@ Edit `frontend/styles/tokens.css` to change colors, fonts, spacing, and radii wi
 ## Troubleshooting
 
 - **Can't connect to MySQL**: verify `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` in `.env` match your MySQL instance, and that the `jdk_factory` database exists.
-- **Port 5000 already in use**: stop the conflicting process or adjust the port in `serve.py`.
+- **Port 5000 already in use**: stop the conflicting process or adjust the port in `serve.py` (or `backend/app.py` / `run.py`, whichever you're using).
 - **Lost admin password**: use the "Forgot password" flow on the login screen to request a reset token.
+- **`/` or frontend assets (CSS/JS) return 404, but `/api/...` routes work**: this was a bug in older clones where the frontend route was only registered in `serve.py`, so starting the app via `python backend/app.py` served the API but not the UI. Fixed as of commit `45eacad` — pull the latest `main` and this goes away regardless of which of the three entry points (`serve.py`, `backend/app.py`, `run.py`) you use.
 - **Server starts but logs "MySQL not reachable" / `/api/health` shows `"db": "unavailable"`**: this app connects over TCP with `DB_USER`/`DB_PASSWORD` from `.env`. If MySQL was installed fresh (not XAMPP) and `root` defaults to `unix_socket`/`auth_socket` auth, TCP connections are rejected even with correct credentials. Fix by switching root to password auth:
   ```sql
   ALTER USER 'root'@'localhost' IDENTIFIED VIA mysql_native_password USING PASSWORD('yourpassword');
