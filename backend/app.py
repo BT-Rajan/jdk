@@ -63,6 +63,30 @@ app.config.update(
 )
 CORS(app, supports_credentials=True, origins=["*"])
 
+# ── Frontend static/SPA serving ────────────────────────────────────────────────
+# Registered here (not just in serve.py) so the app serves the frontend
+# correctly no matter whether it's started via `python serve.py` or
+# `python backend/app.py` directly.
+from flask import send_from_directory, abort as _abort
+
+FRONTEND = BASE / "frontend"
+
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def _static_frontend(path):
+    """
+    Catch-all SPA handler.
+    - Never intercepts /api/* routes (they are already registered on the app)
+    - Serves real static files (JS, CSS) directly
+    - Everything else returns index.html so the JS router handles it
+    """
+    if path.startswith("api/"):
+        _abort(404)
+    file_path = FRONTEND / path
+    if path and file_path.is_file():
+        return send_from_directory(FRONTEND, path)
+    return send_from_directory(FRONTEND, "index.html")
+
 STATUS_TERMINAL = frozenset({"Shipped", "Closed", "Cancelled"})
 ROLE_PERMS = {
     "admin":              {"read", "write", "admin", "orders", "inventory"},
