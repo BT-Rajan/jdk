@@ -109,3 +109,9 @@ Edit `frontend/styles/tokens.css` to change colors, fonts, spacing, and radii wi
 - **Can't connect to MySQL**: verify `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` in `.env` match your MySQL instance, and that the `jdk_factory` database exists.
 - **Port 5000 already in use**: stop the conflicting process or adjust the port in `serve.py`.
 - **Lost admin password**: use the "Forgot password" flow on the login screen to request a reset token.
+- **Server starts but logs "MySQL not reachable" / `/api/health` shows `"db": "unavailable"`**: this app connects over TCP with `DB_USER`/`DB_PASSWORD` from `.env`. If MySQL was installed fresh (not XAMPP) and `root` defaults to `unix_socket`/`auth_socket` auth, TCP connections are rejected even with correct credentials. Fix by switching root to password auth:
+  ```sql
+  ALTER USER 'root'@'localhost' IDENTIFIED VIA mysql_native_password USING PASSWORD('yourpassword');
+  FLUSH PRIVILEGES;
+  ```
+  Then set `DB_PASSWORD` in `.env` to match (XAMPP's bundled MySQL doesn't have this issue — it uses password auth by default).
